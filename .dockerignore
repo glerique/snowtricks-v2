@@ -1,0 +1,28 @@
+.git
+.github
+.idea
+.vscode
+.DS_Store
+CLAUDE.md
+compose*.yaml
+Makefile
+README.md
+
+# Rebuilt inside the image
+vendor
+var
+public/assets
+
+# Local env overrides must never reach an image
+.env.local
+.env.*.local
+.env.local.php
+
+# Dev and test only
+tests
+phpunit.dist.xml
+phpstan.dist.neon
+.php-cs-fixer.dist.php
+.php-cs-fixer.cache
+.phpunit.cache
+assets/vendor
