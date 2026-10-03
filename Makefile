@@ -20,6 +20,9 @@ console: ## make console c="cache:clear"
 migrate: ## Applique les migrations
 	$(APP) bin/console doctrine:migrations:migrate -n --allow-no-migration
 
+fixtures: ## Recharge les données de démo (vide la base)
+	$(APP) bin/console foundry:load-fixtures -n
+
 test: ## Lance les tests
 	$(APP) bin/phpunit
 
