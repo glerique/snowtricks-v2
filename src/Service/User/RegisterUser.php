@@ -13,6 +13,7 @@ final readonly class RegisterUser
     public function __construct(
         private UserPasswordHasherInterface $passwordHasher,
         private EntityManagerInterface $entityManager,
+        private SendVerificationEmail $sendVerificationEmail,
     ) {
     }
 
@@ -22,5 +23,7 @@ final readonly class RegisterUser
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();
+
+        ($this->sendVerificationEmail)($user);
     }
 }
