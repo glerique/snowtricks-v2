@@ -28,6 +28,18 @@ final class SecurityControllerTest extends WebTestCase
     }
 
     #[Test]
+    public function loginFormLoadsTheCsrfScript(): void
+    {
+        $client = static::createClient();
+
+        $client->request('GET', '/login');
+
+        // Without this attribute the lazy Stimulus controller is not loaded on a fresh page load,
+        // and the login is rejected once the session has used the double-submit CSRF check.
+        self::assertSelectorExists('input[name="_csrf_token"][data-controller="csrf-protection"]');
+    }
+
+    #[Test]
     public function wrongPasswordShowsAnError(): void
     {
         $client = static::createClient();
