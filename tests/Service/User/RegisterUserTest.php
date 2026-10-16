@@ -26,4 +26,19 @@ final class RegisterUserTest extends KernelTestCase
             self::getContainer()->get(UserPasswordHasherInterface::class)->isPasswordValid($user, 'my-secret-password'),
         );
     }
+
+    #[Test]
+    public function itSendsAVerificationEmail(): void
+    {
+        $user = (new User())->setEmail('rider@example.com')->setUsername('rider');
+
+        self::getContainer()->get(RegisterUser::class)($user, 'my-secret-password');
+
+        self::assertEmailCount(1);
+        $email = self::getMailerMessage();
+        self::assertNotNull($email);
+        self::assertEmailAddressContains($email, 'to', 'rider@example.com');
+        self::assertEmailAddressContains($email, 'from', 'no-reply@snowtricks.dev');
+        self::assertEmailHtmlBodyContains($email, '/verify/email');
+    }
 }
