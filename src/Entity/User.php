@@ -15,8 +15,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: 'app_user')]
-#[UniqueEntity('email', message: 'This e-mail is already registered.')]
-#[UniqueEntity('username', message: 'This username is already taken.')]
+#[UniqueEntity('email', message: 'Cette adresse e-mail est déjà utilisée.')]
+#[UniqueEntity('username', message: "Ce nom d'utilisateur est déjà pris.")]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
