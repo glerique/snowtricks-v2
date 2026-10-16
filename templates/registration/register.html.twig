@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Inscription - Snowtricks{% endblock %}
+
+{% block body %}
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-5">
+            <h1 class="h3 mb-4">Inscription</h1>
+
+            {{ form_start(form) }}
+                {{ form_row(form.email) }}
+                {{ form_row(form.username) }}
+                {{ form_row(form.plainPassword.first) }}
+                {{ form_row(form.plainPassword.second) }}
+
+                <button type="submit" class="btn btn-primary">Créer mon compte</button>
+            {{ form_end(form) }}
+        </div>
+    </div>
+{% endblock %}

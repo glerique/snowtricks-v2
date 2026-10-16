@@ -13,7 +13,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity]
-#[UniqueEntity('name', message: 'A trick with this name already exists.')]
+#[UniqueEntity('name', message: 'Une figure porte déjà ce nom.')]
 class Trick
 {
     #[ORM\Id]
