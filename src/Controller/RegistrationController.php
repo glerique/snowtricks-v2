@@ -7,10 +7,13 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Form\RegistrationType;
 use App\Service\User\RegisterUser;
+use App\Service\User\SendVerificationEmail;
+use App\Service\User\VerifyUserEmail;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use SymfonyCasts\Bundle\VerifyEmail\Exception\VerifyEmailExceptionInterface;
 
 final class RegistrationController extends AbstractController
 {
@@ -27,11 +30,27 @@ final class RegistrationController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $registerUser($user, (string) $form->get('plainPassword')->getData());
-            $this->addFlash('success', 'Votre compte a été créé. Vous pouvez maintenant vous connecter.');
+            $this->addFlash('success', 'Votre compte a été créé. Un e-mail de confirmation vient de vous être envoyé.');
 
             return $this->redirectToRoute('app_login');
         }
 
         return $this->render('registration/register.html.twig', ['form' => $form]);
+    }
+
+    #[Route('/verify/email', name: SendVerificationEmail::ROUTE)]
+    public function verifyEmail(Request $request, VerifyUserEmail $verifyUserEmail): Response
+    {
+        try {
+            $verifyUserEmail($request->query->getInt('id') ?: null, $request->getUri());
+        } catch (VerifyEmailExceptionInterface) {
+            $this->addFlash('danger', 'Ce lien de confirmation est invalide ou a expiré.');
+
+            return $this->redirectToRoute('app_login');
+        }
+
+        $this->addFlash('success', 'Votre adresse e-mail est confirmée. Vous pouvez vous connecter.');
+
+        return $this->redirectToRoute('app_login');
     }
 }
