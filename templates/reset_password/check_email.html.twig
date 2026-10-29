@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Vérifiez vos e-mails - Snowtricks{% endblock %}
+
+{% block body %}
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-5">
+            <h1 class="h3 mb-4">Vérifiez vos e-mails</h1>
+
+            <p>Si un compte existe pour cette adresse, un e-mail contenant un lien de réinitialisation vient de vous être envoyé.</p>
+            <p>Le lien est valable 1 heure. Pensez à consulter vos courriers indésirables.</p>
+
+            <a href="{{ path('app_login') }}">Retour à la connexion</a>
+        </div>
+    </div>
+{% endblock %}
