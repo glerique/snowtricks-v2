@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Enum\MediaType;
+use App\Repository\TrickRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -12,7 +14,7 @@ use Gedmo\Mapping\Annotation as Gedmo;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: TrickRepository::class)]
 #[UniqueEntity('name', message: 'Une figure porte déjà ce nom.')]
 class Trick
 {
@@ -157,6 +159,22 @@ class Trick
         $this->medias->removeElement($media);
 
         return $this;
+    }
+
+    public function getCoverImage(): ?Media
+    {
+        $cover = null;
+        foreach ($this->medias as $media) {
+            if (MediaType::Image !== $media->getType()) {
+                continue;
+            }
+            if ($media->isMain()) {
+                return $media;
+            }
+            $cover ??= $media;
+        }
+
+        return $cover;
     }
 
     /**
