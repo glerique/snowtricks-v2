@@ -56,6 +56,17 @@ final class HomeControllerTest extends WebTestCase
     }
 
     #[Test]
+    public function eachCardLinksToItsTrickPage(): void
+    {
+        $client = static::createClient();
+        TrickFactory::createOne(['name' => 'Mute Grab']);
+
+        $client->request('GET', '/');
+
+        self::assertSelectorTextContains('.card a.stretched-link[href="/tricks/mute-grab"]', 'Mute Grab');
+    }
+
+    #[Test]
     public function itShowsTheCategoryAndTheAuthorOnEachCard(): void
     {
         $client = static::createClient();
