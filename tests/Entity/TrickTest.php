@@ -49,6 +49,29 @@ final class TrickTest extends TestCase
         self::assertSame($first, $trick->getCoverImage());
     }
 
+    #[Test]
+    public function itSplitsImagesFromVideosKeepingTheirOrder(): void
+    {
+        $firstImage = $this->media(MediaType::Image, 'a.jpg');
+        $video = $this->media(MediaType::Video, 'https://youtu.be/abc');
+        $secondImage = $this->media(MediaType::Image, 'b.jpg');
+        $trick = (new Trick())->addMedia($firstImage)->addMedia($video)->addMedia($secondImage);
+
+        self::assertSame([$firstImage, $secondImage], $trick->getImages());
+        self::assertSame([$video], $trick->getVideos());
+    }
+
+    #[Test]
+    public function theMainImageComesFirstAndTheOthersKeepTheirOrder(): void
+    {
+        $first = $this->media(MediaType::Image, 'a.jpg');
+        $main = $this->media(MediaType::Image, 'b.jpg', main: true);
+        $last = $this->media(MediaType::Image, 'c.jpg');
+        $trick = (new Trick())->addMedia($first)->addMedia($main)->addMedia($last);
+
+        self::assertSame([$main, $first, $last], $trick->getImages());
+    }
+
     private function media(MediaType $type, string $source, bool $main = false): Media
     {
         return (new Media())->setType($type)->setSource($source)->setIsMain($main);
