@@ -241,6 +241,148 @@ final class TrickControllerTest extends WebTestCase
         }
     }
 
+    #[Test]
+    public function visitorsAreSentToTheLoginPageToEditATrick(): void
+    {
+        $client = static::createClient();
+        TrickFactory::createOne(['name' => 'Mute Grab']);
+
+        $client->request('GET', '/tricks/mute-grab/edit');
+
+        self::assertResponseRedirects('/login');
+    }
+
+    #[Test]
+    public function aMemberCannotEditSomeoneElsesTrick(): void
+    {
+        $client = static::createClient();
+        TrickFactory::createOne(['name' => 'Mute Grab']);
+        $client->loginUser(UserFactory::createOne());
+
+        $client->request('GET', '/tricks/mute-grab/edit');
+
+        self::assertResponseStatusCodeSame(403);
+    }
+
+    #[Test]
+    public function theAuthorSeesTheFormFilledWithTheTrick(): void
+    {
+        $client = static::createClient();
+        $author = UserFactory::createOne();
+        TrickFactory::createOne(['name' => 'Mute Grab', 'description' => 'Original description.', 'author' => $author]);
+        $client->loginUser($author);
+
+        $client->request('GET', '/tricks/mute-grab/edit');
+
+        self::assertResponseIsSuccessful();
+        self::assertInputValueSame('trick[name]', 'Mute Grab');
+        self::assertSelectorTextContains('textarea[name="trick[description]"]', 'Original description.');
+    }
+
+    #[Test]
+    public function theAuthorCanEditTheirTrickAndTheAddressFollowsTheNewName(): void
+    {
+        $client = static::createClient();
+        $author = UserFactory::createOne();
+        TrickFactory::createOne(['name' => 'Mute Grab', 'author' => $author]);
+        $client->loginUser($author);
+
+        $this->submitEditForm($client, 'mute-grab', ['trick[name]' => 'Indy Grab']);
+
+        self::assertResponseRedirects('/tricks/indy-grab');
+        $client->followRedirect();
+        self::assertSelectorTextContains('.alert-success', 'La figure a été modifiée.');
+        self::assertSelectorTextContains('h1', 'Indy Grab');
+    }
+
+    #[Test]
+    public function aTrickCanBeSavedWithoutRenamingIt(): void
+    {
+        $client = static::createClient();
+        $author = UserFactory::createOne();
+        TrickFactory::createOne(['name' => 'Mute Grab', 'author' => $author]);
+        $client->loginUser($author);
+
+        $this->submitEditForm($client, 'mute-grab', ['trick[description]' => 'A better description.']);
+
+        // The unique-name rule must not flag the trick against itself.
+        self::assertResponseRedirects('/tricks/mute-grab');
+        $client->followRedirect();
+        self::assertSelectorTextContains('article', 'A better description.');
+    }
+
+    #[Test]
+    public function anAdministratorCanEditAnyTrick(): void
+    {
+        $client = static::createClient();
+        TrickFactory::createOne(['name' => 'Mute Grab']);
+        $client->loginUser(UserFactory::new()->asAdmin()->create());
+
+        $this->submitEditForm($client, 'mute-grab', ['trick[description]' => 'Moderated description.']);
+
+        self::assertResponseRedirects('/tricks/mute-grab');
+    }
+
+    #[Test]
+    public function invalidChangesAreRejectedAndNothingIsSaved(): void
+    {
+        $client = static::createClient();
+        $author = UserFactory::createOne();
+        TrickFactory::createOne(['name' => 'Mute Grab', 'author' => $author]);
+        $client->loginUser($author);
+
+        $this->submitEditForm($client, 'mute-grab', ['trick[name]' => '']);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSelectorTextContains('form', 'Cette valeur ne doit pas être vide.');
+        self::getContainer()->get(EntityManagerInterface::class)->clear();
+        $stored = self::getContainer()->get(EntityManagerInterface::class)->getRepository(Trick::class)->findOneBy(['slug' => 'mute-grab']);
+        self::assertSame('Mute Grab', $stored?->getName());
+    }
+
+    #[Test]
+    public function editingAnUnknownTrickIsNotFound(): void
+    {
+        $client = static::createClient();
+        $client->loginUser(UserFactory::createOne());
+
+        $client->request('GET', '/tricks/does-not-exist/edit');
+
+        self::assertResponseStatusCodeSame(404);
+    }
+
+    #[Test]
+    public function theEditButtonIsOnlyShownToThoseWhoMayEdit(): void
+    {
+        $client = static::createClient();
+        $author = UserFactory::createOne();
+        TrickFactory::createOne(['name' => 'Mute Grab', 'author' => $author]);
+
+        $client->request('GET', '/tricks/mute-grab');
+        self::assertSelectorNotExists('a[href="/tricks/mute-grab/edit"]');
+
+        $client->loginUser(UserFactory::createOne());
+        $client->request('GET', '/tricks/mute-grab');
+        self::assertSelectorNotExists('a[href="/tricks/mute-grab/edit"]');
+
+        $client->loginUser($author);
+        $client->request('GET', '/tricks/mute-grab');
+        self::assertSelectorExists('a[href="/tricks/mute-grab/edit"]');
+
+        $client->loginUser(UserFactory::new()->asAdmin()->create());
+        $client->request('GET', '/tricks/mute-grab');
+        self::assertSelectorExists('a[href="/tricks/mute-grab/edit"]');
+    }
+
+    /**
+     * @param array<string, string> $values
+     */
+    private function submitEditForm(KernelBrowser $client, string $slug, array $values): void
+    {
+        $crawler = $client->request('GET', '/tricks/'.$slug.'/edit');
+        $client->submit($crawler->filter('form')->form($values));
+    }
+
     /**
      * @param array<string, string> $values
      */
