@@ -20,7 +20,7 @@ final class CategoryFactory extends PersistentObjectFactory
     protected function defaults(): array
     {
         return [
-            'name' => self::faker()->unique()->word(),
+            'name' => self::faker()->unique()->lexify('Category ????????'),
         ];
     }
 }
