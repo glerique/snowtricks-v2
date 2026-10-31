@@ -7,6 +7,9 @@
 
     <article>
         <header class="mb-4">
+            {% if is_granted('TRICK_EDIT', trick) %}
+                <a href="{{ path('app_trick_edit', {slug: trick.slug}) }}" class="btn btn-outline-primary btn-sm float-end">Modifier</a>
+            {% endif %}
             <h1>{{ trick.name }}</h1>
             <p class="text-body-secondary mb-0">
                 <span class="badge text-bg-primary">{{ trick.category.name }}</span>
