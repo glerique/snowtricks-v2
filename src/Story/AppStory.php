@@ -15,7 +15,7 @@ use Zenstruck\Foundry\Story;
 use function Zenstruck\Foundry\faker;
 
 /**
- * Demo data for local development. Log in with demo@snowtricks.dev / password.
+ * Demo data for local development. Log in with demo@snowtricks.dev (member) or admin@snowtricks.dev (administrator), password "password".
  */
 #[AsFixture(name: 'main')]
 final class AppStory extends Story
@@ -24,6 +24,7 @@ final class AppStory extends Story
 
     public function build(): void
     {
+        UserFactory::new(['email' => 'admin@snowtricks.dev', 'username' => 'admin'])->asAdmin()->create();
         $users = [
             UserFactory::createOne(['email' => 'demo@snowtricks.dev', 'username' => 'demo']),
             ...UserFactory::createMany(5),

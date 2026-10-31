@@ -27,10 +27,13 @@ final class AppStoryTest extends KernelTestCase
         $em = self::getContainer()->get(EntityManagerInterface::class);
         $validator = self::getContainer()->get(ValidatorInterface::class);
 
-        self::assertSame(6, $em->getRepository(User::class)->count([]));
+        self::assertSame(7, $em->getRepository(User::class)->count([]));
         self::assertSame(6, $em->getRepository(Category::class)->count([]));
         self::assertSame(15, $em->getRepository(Trick::class)->count([]));
         self::assertNotNull($em->getRepository(User::class)->findOneBy(['email' => 'demo@snowtricks.dev']));
+        $admin = $em->getRepository(User::class)->findOneBy(['email' => 'admin@snowtricks.dev']);
+        self::assertNotNull($admin);
+        self::assertContains('ROLE_ADMIN', $admin->getRoles());
 
         foreach ($em->getRepository(Trick::class)->findAll() as $trick) {
             self::assertCount(0, $validator->validate($trick), $trick->getName());

@@ -1,0 +1,8 @@
+{{ form_start(form) }}
+    {{ form_row(form.name) }}
+    {{ form_row(form.description) }}
+    {{ form_row(form.category) }}
+
+    <button type="submit" class="btn btn-primary">{{ button_label }}</button>
+    <a href="{{ cancel_url }}" class="btn btn-link">Annuler</a>
+{{ form_end(form) }}

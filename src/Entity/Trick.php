@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Enum\MediaType;
+use App\Repository\TrickRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -12,7 +14,7 @@ use Gedmo\Mapping\Annotation as Gedmo;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: TrickRepository::class)]
 #[UniqueEntity('name', message: 'Une figure porte déjà ce nom.')]
 class Trick
 {
@@ -24,6 +26,7 @@ class Trick
     #[ORM\Column(length: 150, unique: true)]
     #[Assert\NotBlank]
     #[Assert\Length(max: 150)]
+    #[Assert\Regex(pattern: '/^new$/i', message: 'Ce nom est réservé.', match: false)]
     private string $name = '';
 
     #[ORM\Column(length: 160, unique: true)]
@@ -157,6 +160,54 @@ class Trick
         $this->medias->removeElement($media);
 
         return $this;
+    }
+
+    public function getCoverImage(): ?Media
+    {
+        $cover = null;
+        foreach ($this->medias as $media) {
+            if (MediaType::Image !== $media->getType()) {
+                continue;
+            }
+            if ($media->isMain()) {
+                return $media;
+            }
+            $cover ??= $media;
+        }
+
+        return $cover;
+    }
+
+    /**
+     * @return list<Media>
+     */
+    public function getImages(): array
+    {
+        $images = $this->mediasOfType(MediaType::Image);
+        // usort is stable: images keep their order by id, the main one just moves first.
+        usort($images, static fn (Media $a, Media $b): int => $b->isMain() <=> $a->isMain());
+
+        return $images;
+    }
+
+    /**
+     * @return list<Media>
+     */
+    public function getVideos(): array
+    {
+        return $this->mediasOfType(MediaType::Video);
+    }
+
+    /**
+     * @return list<Media>
+     */
+    private function mediasOfType(MediaType $type): array
+    {
+        $medias = array_values($this->medias->filter(static fn (Media $media): bool => $type === $media->getType())->toArray());
+        // A lazy-loaded collection has no guaranteed order, so order explicitly.
+        usort($medias, static fn (Media $a, Media $b): int => $a->getId() <=> $b->getId());
+
+        return $medias;
     }
 
     /**
