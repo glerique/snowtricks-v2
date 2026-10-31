@@ -67,6 +67,19 @@ final class HomeControllerTest extends WebTestCase
     }
 
     #[Test]
+    public function cardLinksLeaveTheTurboFrameWhileTheViewMoreButtonStaysInIt(): void
+    {
+        $client = static::createClient();
+        TrickFactory::createMany(13);
+
+        $crawler = $client->request('GET', '/');
+
+        // Cards sit inside a frame: without _top, Turbo would load the trick page into the frame ("Content missing").
+        self::assertCount(12, $crawler->filter('.card a.stretched-link[data-turbo-frame="_top"]'));
+        self::assertSelectorNotExists('a.btn[data-turbo-frame]');
+    }
+
+    #[Test]
     public function itShowsTheCategoryAndTheAuthorOnEachCard(): void
     {
         $client = static::createClient();
