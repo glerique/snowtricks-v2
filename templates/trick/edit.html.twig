@@ -1,0 +1,14 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier une figure - Snowtricks{% endblock %}
+
+{% block body %}
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="h3 mb-4">Modifier la figure</h1>
+
+            {# The slug only changes when the form is saved, so it still points to the current page. #}
+            {{ include('trick/_form.html.twig', {button_label: 'Enregistrer', cancel_url: path('app_trick_show', {slug: trick.slug})}) }}
+        </div>
+    </div>
+{% endblock %}
