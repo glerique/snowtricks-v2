@@ -25,6 +25,11 @@ final class UserFactory extends PersistentObjectFactory
         return User::class;
     }
 
+    public function asAdmin(): static
+    {
+        return $this->with(['roles' => ['ROLE_ADMIN']]);
+    }
+
     protected function defaults(): array
     {
         return [
