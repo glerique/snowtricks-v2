@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Controller;
 
+use App\Entity\Trick;
 use App\Enum\MediaType;
 use App\Factory\CategoryFactory;
 use App\Factory\MediaFactory;
@@ -139,6 +140,114 @@ final class TrickControllerTest extends WebTestCase
         $queriesForMany = $this->queryCount($client, '/tricks/many-medias');
 
         self::assertSame($queriesForFew, $queriesForMany);
+    }
+
+    #[Test]
+    public function visitorsAreSentToTheLoginPageToAddATrick(): void
+    {
+        $client = static::createClient();
+
+        $client->request('GET', '/tricks/new');
+
+        self::assertResponseRedirects('/login');
+    }
+
+    #[Test]
+    public function theAddLinkIsOnlyShownToSignedInUsers(): void
+    {
+        $client = static::createClient();
+
+        $client->request('GET', '/');
+        self::assertSelectorNotExists('nav a[href="/tricks/new"]');
+
+        $client->loginUser(UserFactory::createOne());
+        $client->request('GET', '/');
+        self::assertSelectorExists('nav a[href="/tricks/new"]');
+    }
+
+    #[Test]
+    public function aSignedInUserCanCreateATrick(): void
+    {
+        $client = static::createClient();
+        $category = CategoryFactory::createOne(['name' => 'Grabs']);
+        $user = UserFactory::createOne(['username' => 'rider42']);
+        $client->loginUser($user);
+
+        $this->submitNewTrick($client, [
+            'trick[name]' => 'Mute Grab',
+            'trick[description]' => 'Grab the toe edge with the front hand.',
+            'trick[category]' => (string) $category->getId(),
+        ]);
+
+        self::assertResponseRedirects('/tricks/mute-grab');
+        $client->followRedirect();
+        self::assertSelectorTextContains('.alert-success', 'La figure a été créée.');
+        self::assertSelectorTextContains('h1', 'Mute Grab');
+        self::assertSelectorTextContains('article', 'rider42');
+
+        $trick = self::getContainer()->get(EntityManagerInterface::class)->getRepository(Trick::class)->findOneBy(['slug' => 'mute-grab']);
+        self::assertInstanceOf(Trick::class, $trick);
+        self::assertSame($user->getId(), $trick->getAuthor()?->getId());
+    }
+
+    #[Test]
+    public function aTrickNeedsANameADescriptionAndACategory(): void
+    {
+        $client = static::createClient();
+        $client->loginUser(UserFactory::createOne());
+
+        $this->submitNewTrick($client, ['trick[name]' => '', 'trick[description]' => '']);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSelectorExists('.invalid-feedback');
+        self::assertSelectorTextContains('form', 'Cette valeur ne doit pas être vide.');
+        self::assertSame(0, self::getContainer()->get(EntityManagerInterface::class)->getRepository(Trick::class)->count([]));
+    }
+
+    #[Test]
+    public function aTrickNameMustBeUnique(): void
+    {
+        $client = static::createClient();
+        TrickFactory::createOne(['name' => 'Mute Grab']);
+        $category = CategoryFactory::createOne();
+        $client->loginUser(UserFactory::createOne());
+
+        $this->submitNewTrick($client, [
+            'trick[name]' => 'Mute Grab',
+            'trick[description]' => 'Another description.',
+            'trick[category]' => (string) $category->getId(),
+        ]);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSelectorTextContains('form', 'Une figure porte déjà ce nom.');
+    }
+
+    #[Test]
+    public function theNameNewIsReservedBecauseItWouldHideTheCreationPage(): void
+    {
+        $client = static::createClient();
+        $category = CategoryFactory::createOne();
+        $client->loginUser(UserFactory::createOne());
+
+        foreach (['new', 'NEW', 'New'] as $name) {
+            $this->submitNewTrick($client, [
+                'trick[name]' => $name,
+                'trick[description]' => 'A description.',
+                'trick[category]' => (string) $category->getId(),
+            ]);
+
+            self::assertResponseStatusCodeSame(422);
+            self::assertSelectorTextContains('form', 'Ce nom est réservé.');
+        }
+    }
+
+    /**
+     * @param array<string, string> $values
+     */
+    private function submitNewTrick(KernelBrowser $client, array $values): void
+    {
+        $crawler = $client->request('GET', '/tricks/new');
+        $client->submit($crawler->filter('form')->form($values));
     }
 
     /**
