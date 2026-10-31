@@ -7,8 +7,10 @@ namespace App\Controller;
 use App\Entity\Trick;
 use App\Entity\User;
 use App\Form\TrickType;
-use App\Repository\TrickRepository;
+use App\Security\TrickVoter;
 use App\Service\Trick\CreateTrick;
+use App\Service\Trick\UpdateTrick;
+use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -39,11 +41,25 @@ final class TrickController extends AbstractController
     }
 
     #[Route('/{slug}', name: 'show')]
-    public function show(string $slug, TrickRepository $tricks): Response
+    public function show(#[MapEntity(mapping: ['slug' => 'slug'])] Trick $trick): Response
     {
-        $trick = $tricks->findOneBy(['slug' => $slug])
-            ?? throw $this->createNotFoundException('Cette figure n\'existe pas.');
-
         return $this->render('trick/show.html.twig', ['trick' => $trick]);
+    }
+
+    #[Route('/{slug}/edit', name: 'edit')]
+    #[IsGranted(TrickVoter::EDIT, subject: 'trick')]
+    public function edit(Request $request, #[MapEntity(mapping: ['slug' => 'slug'])] Trick $trick, UpdateTrick $updateTrick): Response
+    {
+        $form = $this->createForm(TrickType::class, $trick);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $updateTrick($trick);
+            $this->addFlash('success', 'La figure a été modifiée.');
+
+            return $this->redirectToRoute('app_trick_show', ['slug' => $trick->getSlug()]);
+        }
+
+        return $this->render('trick/edit.html.twig', ['form' => $form, 'trick' => $trick]);
     }
 }
