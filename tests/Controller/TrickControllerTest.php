@@ -381,6 +381,124 @@ final class TrickControllerTest extends WebTestCase
         $client->submit($crawler->filter('form')->form($values));
     }
 
+    #[Test]
+    public function theAuthorCanDeleteTheirTrick(): void
+    {
+        $client = static::createClient();
+        $author = UserFactory::createOne();
+        TrickFactory::createOne(['name' => 'Mute Grab', 'author' => $author]);
+        $client->loginUser($author);
+
+        $this->submitDeleteForm($client, 'mute-grab');
+
+        self::assertResponseRedirects('/');
+        $client->followRedirect();
+        self::assertSelectorTextContains('.alert-success', 'La figure a été supprimée.');
+        $client->request('GET', '/tricks/mute-grab');
+        self::assertResponseStatusCodeSame(404);
+    }
+
+    #[Test]
+    public function anAdministratorCanDeleteAnyTrick(): void
+    {
+        $client = static::createClient();
+        TrickFactory::createOne(['name' => 'Mute Grab']);
+        $client->loginUser(UserFactory::new()->asAdmin()->create());
+
+        $this->submitDeleteForm($client, 'mute-grab');
+
+        self::assertResponseRedirects('/');
+        self::assertSame(0, $this->trickCount());
+    }
+
+    #[Test]
+    public function aMemberCannotDeleteSomeoneElsesTrick(): void
+    {
+        $client = static::createClient();
+        TrickFactory::createOne(['name' => 'Mute Grab']);
+        $client->loginUser(UserFactory::createOne());
+
+        $client->request('POST', '/tricks/mute-grab/delete', ['_token' => 'whatever']);
+
+        self::assertResponseStatusCodeSame(403);
+        self::assertSame(1, $this->trickCount());
+    }
+
+    #[Test]
+    public function visitorsCannotDeleteATrick(): void
+    {
+        $client = static::createClient();
+        TrickFactory::createOne(['name' => 'Mute Grab']);
+
+        $client->request('POST', '/tricks/mute-grab/delete', ['_token' => 'whatever']);
+
+        self::assertResponseRedirects('/login');
+        self::assertSame(1, $this->trickCount());
+    }
+
+    #[Test]
+    public function aWrongCsrfTokenIsRefused(): void
+    {
+        $client = static::createClient();
+        $author = UserFactory::createOne();
+        TrickFactory::createOne(['name' => 'Mute Grab', 'author' => $author]);
+        $client->loginUser($author);
+
+        $client->request('POST', '/tricks/mute-grab/delete', ['_token' => 'forged']);
+
+        self::assertResponseStatusCodeSame(403);
+        self::assertSame(1, $this->trickCount());
+    }
+
+    #[Test]
+    public function aTrickCannotBeDeletedWithAGetRequest(): void
+    {
+        $client = static::createClient();
+        $author = UserFactory::createOne();
+        TrickFactory::createOne(['name' => 'Mute Grab', 'author' => $author]);
+        $client->loginUser($author);
+
+        $client->request('GET', '/tricks/mute-grab/delete');
+
+        self::assertResponseStatusCodeSame(405);
+        self::assertSame(1, $this->trickCount());
+    }
+
+    #[Test]
+    public function theDeleteButtonIsOnlyShownToThoseWhoMayDelete(): void
+    {
+        $client = static::createClient();
+        $author = UserFactory::createOne();
+        TrickFactory::createOne(['name' => 'Mute Grab', 'author' => $author]);
+        $form = 'form[action="/tricks/mute-grab/delete"]';
+
+        $client->request('GET', '/tricks/mute-grab');
+        self::assertSelectorNotExists($form);
+
+        $client->loginUser(UserFactory::createOne());
+        $client->request('GET', '/tricks/mute-grab');
+        self::assertSelectorNotExists($form);
+
+        $client->loginUser($author);
+        $client->request('GET', '/tricks/mute-grab');
+        self::assertSelectorExists($form);
+
+        $client->loginUser(UserFactory::new()->asAdmin()->create());
+        $client->request('GET', '/tricks/mute-grab');
+        self::assertSelectorExists($form);
+    }
+
+    private function submitDeleteForm(KernelBrowser $client, string $slug): void
+    {
+        $crawler = $client->request('GET', '/tricks/'.$slug);
+        $client->submit($crawler->selectButton('Supprimer')->form());
+    }
+
+    private function trickCount(): int
+    {
+        return self::getContainer()->get(EntityManagerInterface::class)->getRepository(Trick::class)->count([]);
+    }
+
     /**
      * @param array<string, string> $values
      */
