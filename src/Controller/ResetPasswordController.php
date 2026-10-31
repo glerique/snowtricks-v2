@@ -44,7 +44,6 @@ final class ResetPasswordController extends AbstractController
     public function reset(Request $request, ResetUserPassword $resetUserPassword, ?string $token): Response
     {
         if (null !== $token) {
-            // Move the token from the URL to the session, so it cannot leak through the Referer header.
             $this->storeTokenInSession($token);
 
             return $this->redirectToRoute(SendPasswordResetEmail::ROUTE);

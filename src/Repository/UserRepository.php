@@ -21,10 +21,6 @@ final class UserRepository extends ServiceEntityRepository implements PasswordUp
         parent::__construct($registry, User::class);
     }
 
-    /**
-     * Called by Symfony when a stored hash uses an outdated algorithm or cost.
-     * The write lives here because the security component requires it on this interface.
-     */
     public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newHashedPassword): void
     {
         if (!$user instanceof User) {

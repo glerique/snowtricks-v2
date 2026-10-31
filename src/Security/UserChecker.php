@@ -15,10 +15,6 @@ final class UserChecker implements UserCheckerInterface
     {
     }
 
-    /**
-     * Runs after the password is verified, so the "unverified" status is only
-     * revealed to someone who knows the password.
-     */
     public function checkPostAuth(UserInterface $user): void
     {
         if ($user instanceof User && !$user->isVerified()) {

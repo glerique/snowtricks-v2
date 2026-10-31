@@ -9,6 +9,7 @@ use App\Entity\User;
 use App\Form\TrickType;
 use App\Security\TrickVoter;
 use App\Service\Trick\CreateTrick;
+use App\Service\Trick\DeleteTrick;
 use App\Service\Trick\UpdateTrick;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -21,7 +22,6 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/tricks', name: 'app_trick_')]
 final class TrickController extends AbstractController
 {
-    // Declared before "show": routes are matched in order, and "new" would otherwise be read as a slug.
     #[Route('/new', name: 'new')]
     #[IsGranted('ROLE_USER')]
     public function new(Request $request, CreateTrick $createTrick, #[CurrentUser] User $user): Response
@@ -61,5 +61,19 @@ final class TrickController extends AbstractController
         }
 
         return $this->render('trick/edit.html.twig', ['form' => $form, 'trick' => $trick]);
+    }
+
+    #[Route('/{slug}/delete', name: 'delete', methods: ['POST'])]
+    #[IsGranted(TrickVoter::DELETE, subject: 'trick')]
+    public function delete(Request $request, #[MapEntity(mapping: ['slug' => 'slug'])] Trick $trick, DeleteTrick $deleteTrick): Response
+    {
+        if (!$this->isCsrfTokenValid('delete-trick-'.$trick->getId(), $request->getPayload()->getString('_token'))) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $deleteTrick($trick);
+        $this->addFlash('success', 'La figure a été supprimée.');
+
+        return $this->redirectToRoute('app_home');
     }
 }

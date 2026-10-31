@@ -9,8 +9,6 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Zenstruck\Foundry\Persistence\PersistentObjectFactory;
 
 /**
- * Every fixture user has the password "password".
- *
  * @extends PersistentObjectFactory<User>
  */
 final class UserFactory extends PersistentObjectFactory

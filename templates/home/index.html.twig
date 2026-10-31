@@ -6,11 +6,9 @@
     <h1>Snowtricks</h1>
     <p class="lead mb-4">Découvrez et partagez les figures de snowboard.</p>
 
-    {# Page numbers come from the paginator itself; there is no next page when 'next' is missing. #}
     {% set page = tricks.currentPageNumber %}
     {% set nextPage = tricks.paginationData.next ?? null %}
 
-    {# Outside the frames on purpose: Turbo only copies the frame of a "Voir plus" response. #}
     {% if page > 1 %}
         <p><a href="{{ path('app_home') }}">&larr; Revenir au début</a></p>
     {% endif %}
@@ -18,8 +16,6 @@
     {% if tricks.items is empty %}
         <p class="text-body-secondary">Aucune figure pour le moment.</p>
     {% else %}
-        {# "Voir plus" loads /?page=N and Turbo swaps the frame with the one of the same id in the response.
-           Each page has its own .row: Bootstrap's grid only works on direct children of the row. #}
         <turbo-frame id="tricks-page-{{ page }}">
             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-4">
                 {% for trick in tricks %}

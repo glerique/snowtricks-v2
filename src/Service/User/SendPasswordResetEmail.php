@@ -24,10 +24,6 @@ final readonly class SendPasswordResetEmail
     ) {
     }
 
-    /**
-     * Never tells the caller whether the address exists or whether the request was throttled:
-     * the response to the visitor must be the same in every case.
-     */
     public function __invoke(string $email): void
     {
         $user = $this->userRepository->findOneBy(['email' => $email]);

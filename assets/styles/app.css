@@ -1,6 +1,3 @@
-/* Project-specific styles, loaded after the Bootswatch theme. */
-
-/* Turbo Frames are custom elements: lay them out as plain blocks. */
 turbo-frame {
     display: block;
 }

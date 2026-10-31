@@ -184,7 +184,6 @@ class Trick
     public function getImages(): array
     {
         $images = $this->mediasOfType(MediaType::Image);
-        // usort is stable: images keep their order by id, the main one just moves first.
         usort($images, static fn (Media $a, Media $b): int => $b->isMain() <=> $a->isMain());
 
         return $images;
@@ -204,7 +203,6 @@ class Trick
     private function mediasOfType(MediaType $type): array
     {
         $medias = array_values($this->medias->filter(static fn (Media $media): bool => $type === $media->getType())->toArray());
-        // A lazy-loaded collection has no guaranteed order, so order explicitly.
         usort($medias, static fn (Media $a, Media $b): int => $a->getId() <=> $b->getId());
 
         return $medias;

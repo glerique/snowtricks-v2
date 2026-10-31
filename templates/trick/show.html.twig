@@ -7,9 +7,17 @@
 
     <article>
         <header class="mb-4">
-            {% if is_granted('TRICK_EDIT', trick) %}
-                <a href="{{ path('app_trick_edit', {slug: trick.slug}) }}" class="btn btn-outline-primary btn-sm float-end">Modifier</a>
-            {% endif %}
+            <div class="float-end d-flex gap-2">
+                {% if is_granted('TRICK_EDIT', trick) %}
+                    <a href="{{ path('app_trick_edit', {slug: trick.slug}) }}" class="btn btn-outline-primary btn-sm">Modifier</a>
+                {% endif %}
+                {% if is_granted('TRICK_DELETE', trick) %}
+                    <form method="post" action="{{ path('app_trick_delete', {slug: trick.slug}) }}" data-turbo-confirm="Supprimer définitivement cette figure ?">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete-trick-' ~ trick.id) }}">
+                        <button type="submit" class="btn btn-outline-danger btn-sm">Supprimer</button>
+                    </form>
+                {% endif %}
+            </div>
             <h1>{{ trick.name }}</h1>
             <p class="text-body-secondary mb-0">
                 <span class="badge text-bg-primary">{{ trick.category.name }}</span>
@@ -18,7 +26,6 @@
         </header>
 
         {% if trick.images is not empty %}
-            {# Bootstrap's grid only works on direct children of the row. #}
             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3 mb-4">
                 {% for image in trick.images %}
                     <div class="col">

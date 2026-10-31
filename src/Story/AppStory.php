@@ -14,9 +14,6 @@ use Zenstruck\Foundry\Story;
 
 use function Zenstruck\Foundry\faker;
 
-/**
- * Demo data for local development. Log in with demo@snowtricks.dev (member) or admin@snowtricks.dev (administrator), password "password".
- */
 #[AsFixture(name: 'main')]
 final class AppStory extends Story
 {

@@ -25,7 +25,6 @@ final class ResetPasswordControllerTest extends WebTestCase
         self::assertResponseRedirects('/reset-password/check-email');
         $link = $this->resetLinkFromSentEmail();
 
-        // The token is moved from the URL to the session, then the form is shown.
         $client->request('GET', $link);
         self::assertResponseRedirects('/reset-password/reset');
         $crawler = $client->followRedirect();
@@ -148,9 +147,6 @@ final class ResetPasswordControllerTest extends WebTestCase
         $client->submit($crawler->filter('form')->form(['_username' => $email, '_password' => $password]));
     }
 
-    /**
-     * Must run right after the request: the mail log is reset when the kernel reboots.
-     */
     private function resetLinkFromSentEmail(): string
     {
         self::assertEmailCount(1);
