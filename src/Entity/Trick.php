@@ -26,6 +26,7 @@ class Trick
     #[ORM\Column(length: 150, unique: true)]
     #[Assert\NotBlank]
     #[Assert\Length(max: 150)]
+    #[Assert\Regex(pattern: '/^new$/i', message: 'Ce nom est réservé.', match: false)]
     private string $name = '';
 
     #[ORM\Column(length: 160, unique: true)]
