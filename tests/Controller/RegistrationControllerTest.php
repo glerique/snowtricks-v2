@@ -7,6 +7,7 @@ namespace App\Tests\Controller;
 use App\Entity\User;
 use App\Factory\UserFactory;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -142,6 +143,31 @@ final class RegistrationControllerTest extends WebTestCase
         $client->request('GET', '/register');
 
         self::assertResponseRedirects('/');
+    }
+
+    /**
+     * @return iterable<string, array{string, string, string, string}>
+     */
+    public static function incompleteRegistrations(): iterable
+    {
+        yield 'everything empty' => ['', '', '', 'ne doit pas être vide'];
+        yield 'no e-mail' => ['', 'rider', 'long-enough-password', 'ne doit pas être vide'];
+        yield 'no username' => ['rider@example.com', '', 'long-enough-password', 'ne doit pas être vide'];
+        yield 'no password' => ['rider@example.com', 'rider', '', 'Veuillez saisir un mot de passe.'];
+    }
+
+    #[Test]
+    #[DataProvider('incompleteRegistrations')]
+    public function emptyFieldsAreRejectedWithValidationMessages(string $email, string $username, string $password, string $message): void
+    {
+        $client = static::createClient();
+
+        $this->submitRegistration($client, $email, $username, $password);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSelectorTextContains('form', $message);
+        self::assertSame(0, self::getContainer()->get(EntityManagerInterface::class)->getRepository(User::class)->count([]));
+        self::assertEmailCount(0);
     }
 
     private function verificationLinkFromSentEmail(): string
