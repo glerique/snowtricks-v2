@@ -18,7 +18,6 @@
         </header>
 
         {% if trick.images is not empty %}
-            {# Bootstrap's grid only works on direct children of the row. #}
             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3 mb-4">
                 {% for image in trick.images %}
                     <div class="col">

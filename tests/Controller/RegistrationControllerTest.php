@@ -41,7 +41,7 @@ final class RegistrationControllerTest extends WebTestCase
 
         $this->submitRegistration($client, 'rider@example.com', 'rider', 'long-enough-password');
         $link = $this->verificationLinkFromSentEmail();
-        $client->followRedirect(); // consumes the "account created" flash message
+        $client->followRedirect();
 
         $client->request('GET', $link);
         self::assertResponseRedirects('/login');
@@ -97,7 +97,7 @@ final class RegistrationControllerTest extends WebTestCase
 
         $this->submitRegistration($client, 'rider@example.com', 'rider', 'long-enough-password');
         $link = $this->verificationLinkFromSentEmail().'x';
-        $client->followRedirect(); // consumes the "account created" flash message
+        $client->followRedirect();
 
         $client->request('GET', $link);
         self::assertResponseRedirects('/login');
@@ -144,9 +144,6 @@ final class RegistrationControllerTest extends WebTestCase
         self::assertResponseRedirects('/');
     }
 
-    /**
-     * Must run right after the registration request: the mail log is reset when the kernel reboots.
-     */
     private function verificationLinkFromSentEmail(): string
     {
         self::assertEmailCount(1);

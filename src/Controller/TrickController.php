@@ -21,7 +21,6 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/tricks', name: 'app_trick_')]
 final class TrickController extends AbstractController
 {
-    // Declared before "show": routes are matched in order, and "new" would otherwise be read as a slug.
     #[Route('/new', name: 'new')]
     #[IsGranted('ROLE_USER')]
     public function new(Request $request, CreateTrick $createTrick, #[CurrentUser] User $user): Response

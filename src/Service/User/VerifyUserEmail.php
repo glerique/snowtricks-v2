@@ -8,7 +8,6 @@ use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use SymfonyCasts\Bundle\VerifyEmail\Exception\InvalidSignatureException;
-use SymfonyCasts\Bundle\VerifyEmail\Exception\VerifyEmailExceptionInterface;
 use SymfonyCasts\Bundle\VerifyEmail\VerifyEmailHelperInterface;
 
 final readonly class VerifyUserEmail
@@ -20,9 +19,6 @@ final readonly class VerifyUserEmail
     ) {
     }
 
-    /**
-     * @throws VerifyEmailExceptionInterface when the link is invalid, expired or points to an unknown user
-     */
     public function __invoke(?int $userId, string $signedUrl): void
     {
         $user = null === $userId ? null : $this->userRepository->find($userId);
@@ -30,7 +26,6 @@ final readonly class VerifyUserEmail
             throw new InvalidSignatureException();
         }
 
-        // The bundle only validates from a Request; building one from the URL keeps this service HTTP-agnostic.
         $this->verifyEmailHelper->validateEmailConfirmationFromRequest(
             Request::create($signedUrl),
             (string) $user->getId(),

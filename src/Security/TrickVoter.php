@@ -11,8 +11,6 @@ use Symfony\Component\Security\Core\Authorization\AccessDecisionManagerInterface
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 
 /**
- * Only the author of a trick, or an administrator, can change or delete it.
- *
  * @extends Voter<string, Trick>
  */
 final class TrickVoter extends Voter

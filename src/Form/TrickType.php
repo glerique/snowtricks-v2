@@ -21,7 +21,6 @@ final class TrickType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            // empty_data: an empty field is sent as null, but the entity only accepts strings.
             ->add('name', TextType::class, ['label' => 'Nom', 'empty_data' => ''])
             ->add('description', TextareaType::class, ['label' => 'Description', 'empty_data' => '', 'attr' => ['rows' => 8]])
             ->add('category', EntityType::class, [

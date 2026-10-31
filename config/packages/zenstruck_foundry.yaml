@@ -6,7 +6,6 @@ when@dev: &dev
             flush_once: true
         orm:
             reset:
-                # Rebuild the database from migrations so the migrations table stays in sync
                 mode: migrate
 
     # If you use the `make:factory --test` command, you may need to uncomment the following.

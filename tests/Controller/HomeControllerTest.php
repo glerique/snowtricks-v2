@@ -74,7 +74,6 @@ final class HomeControllerTest extends WebTestCase
 
         $crawler = $client->request('GET', '/');
 
-        // Cards sit inside a frame: without _top, Turbo would load the trick page into the frame ("Content missing").
         self::assertCount(12, $crawler->filter('.card a.stretched-link[data-turbo-frame="_top"]'));
         self::assertSelectorNotExists('a.btn[data-turbo-frame]');
     }
@@ -112,8 +111,6 @@ final class HomeControllerTest extends WebTestCase
         $client = static::createClient();
         TrickFactory::createMany(13);
 
-        // Bootstrap sizes columns with child selectors (.row-cols-3 > *), so a wrapper
-        // between the row and a column silently breaks the grid.
         foreach (['/', '/?page=2'] as $url) {
             $crawler = $client->request('GET', $url);
 
@@ -131,7 +128,6 @@ final class HomeControllerTest extends WebTestCase
         $client = static::createClient();
         TrickFactory::createMany(13);
 
-        // Turbo sends the id of the frame that contains the clicked link.
         $crawler = $client->request('GET', '/?page=2', server: ['HTTP_TURBO_FRAME' => 'tricks-page-2']);
 
         self::assertResponseIsSuccessful();
@@ -236,15 +232,11 @@ final class HomeControllerTest extends WebTestCase
         self::assertSame($few, $many);
     }
 
-    /**
-     * The profiler counts every query since the container booted, fixtures included.
-     * A first request reboots the kernel, so the measured one only holds its own queries.
-     */
     private function queryCountOfHomePage(KernelBrowser $client): int
     {
         $client->request('GET', '/');
 
-        $client->enableProfiler(); // only applies to the next request
+        $client->enableProfiler();
         $client->request('GET', '/');
 
         $profile = $client->getProfile();

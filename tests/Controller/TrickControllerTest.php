@@ -61,7 +61,6 @@ final class TrickControllerTest extends WebTestCase
         MediaFactory::createOne(['trick' => $trick, 'source' => 'https://example.com/first.jpg', 'isMain' => false]);
         MediaFactory::createOne(['trick' => $trick, 'source' => 'https://example.com/second.jpg', 'isMain' => false]);
         MediaFactory::createOne(['trick' => $trick, 'source' => 'https://example.com/main.jpg', 'isMain' => true]);
-        // A real request starts with an empty identity map; otherwise Doctrine would not reload the medias.
         self::getContainer()->get(EntityManagerInterface::class)->clear();
 
         $crawler = $client->request('GET', '/tricks/mute-grab');
@@ -305,7 +304,6 @@ final class TrickControllerTest extends WebTestCase
 
         $this->submitEditForm($client, 'mute-grab', ['trick[description]' => 'A better description.']);
 
-        // The unique-name rule must not flag the trick against itself.
         self::assertResponseRedirects('/tricks/mute-grab');
         $client->followRedirect();
         self::assertSelectorTextContains('article', 'A better description.');
@@ -392,15 +390,11 @@ final class TrickControllerTest extends WebTestCase
         $client->submit($crawler->filter('form')->form($values));
     }
 
-    /**
-     * The profiler counts every query since the container booted, fixtures included.
-     * A first request reboots the kernel, so the measured one only holds its own queries.
-     */
     private function queryCount(KernelBrowser $client, string $url): int
     {
         $client->request('GET', $url);
 
-        $client->enableProfiler(); // only applies to the next request
+        $client->enableProfiler();
         $client->request('GET', $url);
 
         $profile = $client->getProfile();

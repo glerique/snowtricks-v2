@@ -12,9 +12,6 @@ use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
 /**
- * A "password + confirmation" field, shared by registration and password reset.
- * It is not mapped: the plain password never reaches the entity.
- *
  * @extends AbstractType<string>
  */
 final class NewPasswordType extends AbstractType
