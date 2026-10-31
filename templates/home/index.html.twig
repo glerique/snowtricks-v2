@@ -37,7 +37,7 @@
                             {% endif %}
                             <div class="card-body">
                                 <h2 class="card-title h5">
-                                    <a href="{{ path('app_trick_show', {slug: trick.slug}) }}" class="stretched-link text-reset text-decoration-none">{{ trick.name }}</a>
+                                    <a href="{{ path('app_trick_show', {slug: trick.slug}) }}" class="stretched-link text-reset text-decoration-none" data-turbo-frame="_top">{{ trick.name }}</a>
                                 </h2>
                                 <p class="card-text text-body-secondary mb-0">{{ trick.category.name }} · par {{ trick.author.username }}</p>
                             </div>
